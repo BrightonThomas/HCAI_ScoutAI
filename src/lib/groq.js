@@ -38,6 +38,11 @@ export const generateActivityIdeas = async (formData) => {
       - location: (string, specific context, e.g., "by the creek")
       - constraint: (string, a fun twist or rule, e.g., "without talking")
       - item: (string, a key item needed)
+      - duration: (string, e.g., "90-120 minutes")
+      - groupSize: (string, e.g., "Teams of 4-5")
+      - materialsList: (array of strings, specific items needed)
+      - safetySteps: (array of strings, key safety considerations)
+      - restrictions: (array of strings, weather/mobility considerations)
     `;
 
         const completion = await groq.chat.completions.create({

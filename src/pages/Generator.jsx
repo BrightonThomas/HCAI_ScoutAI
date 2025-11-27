@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, ChevronDown, RotateCcw, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Sparkles, ChevronDown, RotateCcw, ArrowLeft, AlertCircle, Clock, Users, MapPin, CheckCircle2, ShieldAlert, AlertTriangle, X } from 'lucide-react';
 import Button from '../components/Button';
 import { generateActivityIdeas } from '../lib/groq';
 import { generatorData } from '../data/generatorData';
@@ -25,6 +25,11 @@ const Generator = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState(null);
 
+    // New state for Expanded View and Flyer
+    const [selectedIdea, setSelectedIdea] = useState(null);
+    const [showFlyer, setShowFlyer] = useState(false);
+    const [savedSuccess, setSavedSuccess] = useState(false);
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         setFormData(prev => ({
@@ -36,6 +41,8 @@ const Generator = () => {
     const handleReset = () => {
         setFormData(initialFormState);
         setError(null);
+        setGeneratedIdeas(null);
+        setSelectedIdea(null);
     };
 
     const generateIdeas = async () => {
@@ -45,6 +52,7 @@ const Generator = () => {
         try {
             const ideas = await generateActivityIdeas(formData);
             setGeneratedIdeas(ideas);
+            setSelectedIdea(null); // Reset selection on new generation
         } catch (err) {
             console.error(err);
             setError(err.message || "Failed to generate ideas. Please check your API key and try again.");
@@ -53,6 +61,187 @@ const Generator = () => {
         }
     };
 
+    const handleSaveActivity = (idea) => {
+        const saved = JSON.parse(localStorage.getItem('savedActivities') || '[]');
+        // Check if already saved
+        if (!saved.some(a => a.title === idea.title)) {
+            localStorage.setItem('savedActivities', JSON.stringify([...saved, { ...idea, savedAt: new Date().toISOString() }]));
+            setSavedSuccess(true);
+            setTimeout(() => setSavedSuccess(false), 3000);
+        }
+    };
+
+    const FlyerModal = ({ idea, onClose }) => (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative">
+                <div className="bg-emerald-600 p-6 text-white text-center relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                    <h2 className="text-2xl font-bold relative z-10">Scout Activity Flyer</h2>
+                    <p className="text-emerald-100 text-sm relative z-10">Join us for an adventure!</p>
+                    <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white">
+                        <X size={24} />
+                    </button>
+                </div>
+                <div className="p-8 text-center space-y-6">
+                    <div>
+                        <h3 className="text-3xl font-black text-stone-800 mb-2">{idea.title}</h3>
+                        <p className="text-stone-500 italic">{idea.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-left bg-stone-50 p-4 rounded-xl">
+                        <div>
+                            <p className="text-xs font-bold text-stone-400 uppercase">When</p>
+                            <p className="font-bold text-stone-700">Next Meeting</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-stone-400 uppercase">Where</p>
+                            <p className="font-bold text-stone-700">{idea.location}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-stone-400 uppercase">Bring</p>
+                            <p className="font-bold text-stone-700">{idea.item || "Water bottle"}</p>
+                        </div>
+                        <div>
+                            <p className="text-xs font-bold text-stone-400 uppercase">Duration</p>
+                            <p className="font-bold text-stone-700">{idea.duration || "60 mins"}</p>
+                        </div>
+                    </div>
+
+                    <div className="border-t border-stone-100 pt-6">
+                        <p className="text-sm text-stone-400">Scan to RSVP or contact your troop leader</p>
+                    </div>
+
+                    <Button onClick={onClose} className="w-full">Close Flyer</Button>
+                </div>
+            </div>
+        </div>
+    );
+
+    // Expanded View
+    if (selectedIdea) {
+        return (
+            <div className="p-6 pt-8 pb-24">
+                {showFlyer && <FlyerModal idea={selectedIdea} onClose={() => setShowFlyer(false)} />}
+
+                <Button
+                    variant="ghost"
+                    onClick={() => setSelectedIdea(null)}
+                    className="mb-4 text-stone-500 hover:text-stone-800 pl-0"
+                >
+                    <ArrowLeft size={20} className="mr-2" /> Back to Ideas
+                </Button>
+
+                <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-stone-100">
+                    <div className="p-6 border-b border-stone-100">
+                        <div className="flex justify-between items-start mb-2">
+                            <h2 className="text-2xl font-bold text-stone-800">{selectedIdea.title}</h2>
+                            <div className="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-lg">
+                                <span className="font-bold text-sm">4.8</span>
+                                <Sparkles size={14} fill="currentColor" />
+                            </div>
+                        </div>
+                        <p className="text-stone-600 leading-relaxed">{selectedIdea.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 divide-x divide-stone-100 border-b border-stone-100 bg-stone-50/50">
+                        <div className="p-4 text-center">
+                            <Clock size={20} className="mx-auto mb-1 text-emerald-600" />
+                            <p className="text-xs font-bold text-stone-500">{selectedIdea.duration || "60 mins"}</p>
+                        </div>
+                        <div className="p-4 text-center">
+                            <Users size={20} className="mx-auto mb-1 text-emerald-600" />
+                            <p className="text-xs font-bold text-stone-500">{selectedIdea.groupSize || formData.numKids + " kids"}</p>
+                        </div>
+                        <div className="p-4 text-center">
+                            <MapPin size={20} className="mx-auto mb-1 text-emerald-600" />
+                            <p className="text-xs font-bold text-stone-500">{selectedIdea.location}</p>
+                        </div>
+                    </div>
+
+                    <div className="p-6 space-y-8">
+                        {/* Materials */}
+                        <div>
+                            <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
+                                <CheckCircle2 size={18} className="text-emerald-600" /> Materials Needed
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {selectedIdea.materialsList?.map((item, i) => (
+                                    <span key={i} className="bg-stone-100 text-stone-600 px-3 py-1 rounded-full text-sm font-medium border border-stone-200">
+                                        {item}
+                                    </span>
+                                )) || <span className="text-stone-400 italic">No specific materials listed</span>}
+                            </div>
+                        </div>
+
+                        {/* Safety */}
+                        <div>
+                            <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
+                                <ShieldAlert size={18} className="text-emerald-600" /> Safety Considerations
+                            </h3>
+                            <ul className="space-y-2">
+                                {selectedIdea.safetySteps?.map((step, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
+                                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5 shrink-0" />
+                                        {step}
+                                    </li>
+                                )) || <li className="text-stone-400 italic">Standard safety rules apply</li>}
+                            </ul>
+                        </div>
+
+                        {/* Restrictions */}
+                        <div>
+                            <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
+                                <AlertTriangle size={18} className="text-emerald-600" /> Restrictions & Considerations
+                            </h3>
+                            <ul className="space-y-2">
+                                {selectedIdea.restrictions?.map((item, i) => (
+                                    <li key={i} className="flex items-start gap-2 text-sm text-stone-600">
+                                        <span className="w-1.5 h-1.5 bg-stone-400 rounded-full mt-1.5 shrink-0" />
+                                        {item}
+                                    </li>
+                                )) || <li className="text-stone-400 italic">No specific restrictions</li>}
+                            </ul>
+                        </div>
+
+                        {/* Rating Placeholder */}
+                        <div className="pt-6 border-t border-stone-100">
+                            <h3 className="font-bold text-stone-800 mb-2">Rate this activity</h3>
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                        key={star}
+                                        className="text-yellow-400 hover:scale-110 transition-transform focus:outline-none"
+                                    >
+                                        <Sparkles size={24} fill="currentColor" />
+                                    </button>
+                                ))}
+                            </div>
+                            <p className="text-xs text-stone-400 mt-1">Click to rate</p>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="p-6 bg-stone-50 border-t border-stone-100 flex gap-3">
+                        <Button
+                            onClick={() => handleSaveActivity(selectedIdea)}
+                            className={`flex-1 ${savedSuccess ? 'bg-green-600 hover:bg-green-700' : 'bg-emerald-800 hover:bg-emerald-900'}`}
+                        >
+                            {savedSuccess ? 'Saved!' : 'Save Activity'}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowFlyer(true)}
+                            className="flex-1 border-yellow-600 text-yellow-700 bg-yellow-50 hover:bg-yellow-100"
+                        >
+                            Generate Parent Flyer
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Results List View
     if (generatedIdeas) {
         return (
             <div className="p-6 pt-8 pb-24">
@@ -68,7 +257,12 @@ const Generator = () => {
 
                 <div className="space-y-6">
                     {generatedIdeas.map((idea) => (
-                        <div key={idea.id} className="bg-white rounded-3xl shadow-lg p-6 border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${idea.id * 100}ms` }}>
+                        <div
+                            key={idea.id}
+                            onClick={() => setSelectedIdea(idea)}
+                            className="bg-white rounded-3xl shadow-lg p-6 border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-500 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all"
+                            style={{ animationDelay: `${idea.id * 100}ms` }}
+                        >
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-xl font-bold text-emerald-900">{idea.title}</h3>
                                 <div className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
@@ -110,6 +304,7 @@ const Generator = () => {
         );
     }
 
+    // Form View
     return (
         <div className="p-6 pb-24">
             <div className="mb-6">
