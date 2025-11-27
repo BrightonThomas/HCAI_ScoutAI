@@ -6,7 +6,7 @@ import { generatorData } from '../data/generatorData';
 
 const Generator = () => {
     const initialFormState = {
-        numKids: '20',
+        numKids: '10',
         minAge: '8',
         maxAge: '12',
         budgetType: 'money',
@@ -329,6 +329,8 @@ const Generator = () => {
                             name="numKids"
                             value={formData.numKids}
                             onChange={handleInputChange}
+                            min="1"
+                            max="50"
                             className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
@@ -340,6 +342,8 @@ const Generator = () => {
                                 name="minAge"
                                 value={formData.minAge}
                                 onChange={handleInputChange}
+                                min="3"
+                                max="18"
                                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             />
                         </div>
@@ -350,6 +354,8 @@ const Generator = () => {
                                 name="maxAge"
                                 value={formData.maxAge}
                                 onChange={handleInputChange}
+                                min="3"
+                                max="18"
                                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                             />
                         </div>
