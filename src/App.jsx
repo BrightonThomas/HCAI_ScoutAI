@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Layout from './components/Layout';
 import Generator from './pages/Generator';
-import Media from './pages/Media';
+import EventCollaboration from './pages/EventCollaboration';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 
@@ -12,8 +12,8 @@ function App() {
     switch (activeTab) {
       case 'generator':
         return <Generator />;
-      case 'media':
-        return <Media />;
+      case 'events':
+        return <EventCollaboration />;
       case 'community':
         return <Community />;
       case 'profile':

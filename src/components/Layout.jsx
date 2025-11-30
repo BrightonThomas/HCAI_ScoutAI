@@ -1,10 +1,10 @@
 import React from 'react';
-import { Sparkles, Image, Users, User, Tent } from 'lucide-react';
+import { Sparkles, Image, Users, User, Tent, Calendar } from 'lucide-react';
 
 const Layout = ({ children, activeTab, onTabChange }) => {
     const navItems = [
         { id: 'generator', icon: Sparkles, label: 'Generator' },
-        { id: 'media', icon: Image, label: 'Media' },
+        { id: 'events', icon: Calendar, label: 'Events' },
         { id: 'community', icon: Users, label: 'Community' },
         { id: 'profile', icon: User, label: 'Profile' },
     ];

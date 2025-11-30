@@ -99,7 +99,7 @@ const Profile = () => {
                         <input type="text" defaultValue="Senior Scout Leader" className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm font-medium text-stone-700" />
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-stone-700 mb-1">Years of Experience</label>
+                        <label className="block text-xs font-bold text-stone-700 mb-1">Experience</label>
                         <input type="text" defaultValue="8 years" className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm font-medium text-stone-700" />
                     </div>
                 </div>
