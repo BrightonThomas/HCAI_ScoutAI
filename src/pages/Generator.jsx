@@ -1,63 +1,73 @@
 import React, { useState } from 'react';
-import { Sparkles, ChevronDown, RotateCcw, ArrowLeft, AlertCircle, Clock, Users, MapPin, CheckCircle2, ShieldAlert, AlertTriangle, X } from 'lucide-react';
+import { Sparkles, ChevronDown, RotateCcw, ArrowLeft, AlertCircle, Clock, Users, MapPin, CheckCircle2, ShieldAlert, AlertTriangle, X, Lightbulb } from 'lucide-react';
 import Button from '../components/Button';
 import { generateActivityIdeas } from '../lib/groq';
 import { generatorData } from '../data/generatorData';
 
-const Generator = () => {
-    const initialFormState = {
-        numKids: '10',
-        minAge: '8',
-        maxAge: '12',
-        budgetType: 'money',
-        budgetAmount: 50,
-        materials: '',
-        theme: '',
-        accessible: false,
-        region: '',
-        location: 'Outdoor',
-        format: 'Small groups',
-        purpose: ''
-    };
+const Generator = ({ state, updateState }) => {
+    const { formData, generatedIdeas, selectedIdea, isGenerating, error } = state;
 
-    const [formData, setFormData] = useState(initialFormState);
-    const [generatedIdeas, setGeneratedIdeas] = useState(null);
-    const [isGenerating, setIsGenerating] = useState(false);
-    const [error, setError] = useState(null);
-
-    // New state for Expanded View and Flyer
-    const [selectedIdea, setSelectedIdea] = useState(null);
+    // Local state for UI only
     const [showFlyer, setShowFlyer] = useState(false);
     const [savedSuccess, setSavedSuccess] = useState(false);
 
+    React.useEffect(() => {
+        if (selectedIdea) {
+            window.scrollTo(0, 0);
+        }
+    }, [selectedIdea]);
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        updateState({
+            formData: {
+                ...formData,
+                [name]: type === 'checkbox' ? checked : value
+            }
+        });
     };
 
     const handleReset = () => {
-        setFormData(initialFormState);
-        setError(null);
-        setGeneratedIdeas(null);
-        setSelectedIdea(null);
+        updateState({
+            formData: {
+                numKids: '10',
+                minAge: '8',
+                maxAge: '12',
+                budgetType: 'money',
+                budgetAmount: 50,
+                materials: '',
+                theme: '',
+                materials: '',
+                theme: '',
+                accessible: false,
+                disability: '',
+                region: '',
+                location: 'Outdoor',
+                format: 'Small groups',
+                purpose: ''
+            },
+            error: null,
+            generatedIdeas: null,
+            selectedIdea: null
+        });
     };
 
     const generateIdeas = async () => {
-        setIsGenerating(true);
-        setError(null);
+        updateState({ isGenerating: true, error: null });
 
         try {
             const ideas = await generateActivityIdeas(formData);
-            setGeneratedIdeas(ideas);
-            setSelectedIdea(null); // Reset selection on new generation
+            updateState({
+                generatedIdeas: ideas,
+                selectedIdea: null,
+                isGenerating: false
+            });
         } catch (err) {
             console.error(err);
-            setError(err.message || "Failed to generate ideas. Please check your API key and try again.");
-        } finally {
-            setIsGenerating(false);
+            updateState({
+                error: err.message || "Failed to generate ideas. Please check your API key and try again.",
+                isGenerating: false
+            });
         }
     };
 
@@ -125,7 +135,7 @@ const Generator = () => {
 
                 <Button
                     variant="ghost"
-                    onClick={() => setSelectedIdea(null)}
+                    onClick={() => updateState({ selectedIdea: null })}
                     className="mb-4 text-stone-500 hover:text-stone-800 pl-0"
                 >
                     <ArrowLeft size={20} className="mr-2" /> Back to Ideas
@@ -159,6 +169,18 @@ const Generator = () => {
                     </div>
 
                     <div className="p-6 space-y-8">
+                        {/* Inspiration */}
+                        {selectedIdea.inspiration && (
+                            <div>
+                                <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
+                                    <Lightbulb size={18} className="text-emerald-600" /> Inspired From
+                                </h3>
+                                <p className="text-stone-600 text-sm leading-relaxed bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                                    {selectedIdea.inspiration}
+                                </p>
+                            </div>
+                        )}
+
                         {/* Materials */}
                         <div>
                             <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
@@ -247,7 +269,7 @@ const Generator = () => {
             <div className="p-6 pt-8 pb-24">
                 <Button
                     variant="ghost"
-                    onClick={() => setGeneratedIdeas(null)}
+                    onClick={() => updateState({ generatedIdeas: null })}
                     className="mb-4 text-stone-500 hover:text-stone-800 pl-0"
                 >
                     <ArrowLeft size={20} className="mr-2" /> Back to Filters
@@ -259,7 +281,7 @@ const Generator = () => {
                     {generatedIdeas.map((idea) => (
                         <div
                             key={idea.id}
-                            onClick={() => setSelectedIdea(idea)}
+                            onClick={() => updateState({ selectedIdea: idea })}
                             className="bg-white rounded-3xl shadow-lg p-6 border border-emerald-100 animate-in fade-in slide-in-from-bottom-4 duration-500 cursor-pointer hover:shadow-xl hover:scale-[1.02] transition-all"
                             style={{ animationDelay: `${idea.id * 100}ms` }}
                         >
@@ -426,6 +448,8 @@ const Generator = () => {
                     />
                 </div>
 
+
+
                 {/* Accessibility */}
                 <div className="bg-amber-50 p-4 rounded-xl flex items-center justify-between">
                     <div>
@@ -443,6 +467,21 @@ const Generator = () => {
                         <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                     </label>
                 </div>
+
+                {formData.accessible && (
+                    <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <label className="block text-sm font-bold text-stone-700 mb-1">Specific Disability / Needs</label>
+                        <input
+                            type="text"
+                            name="disability"
+                            value={formData.disability}
+                            onChange={handleInputChange}
+                            placeholder="e.g., wheelchair user, visual impairment, sensory sensitivity..."
+                            className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                    </div>
+                )}
+
 
                 {/* Location & Format */}
                 <div className="grid grid-cols-1 gap-4">
@@ -524,7 +563,7 @@ const Generator = () => {
                     </Button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -9,6 +9,10 @@ const Layout = ({ children, activeTab, onTabChange }) => {
         { id: 'profile', icon: User, label: 'Profile' },
     ];
 
+    React.useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [activeTab]);
+
     return (
         <div className="min-h-screen bg-stone-50 text-stone-900 font-sans pb-20">
             <header className="bg-emerald-900 text-white p-4 shadow-lg sticky top-0 z-10">

@@ -25,7 +25,7 @@ export const generateActivityIdeas = async (formData) => {
       - Theme: ${formData.theme || "General Scouting Fun"}
       - Budget: ${formData.budgetType} ${formData.budgetType === 'money' ? `($${formData.budgetAmount})` : ''}
       - Materials Available: ${formData.materials || "Standard scout gear"}
-      - Accessibility: ${formData.accessible ? "Must be accessible for all abilities" : "Standard"}
+      - Accessibility: ${formData.accessible ? `Must be accessible for: ${formData.disability || "General accessibility needs"}` : "Standard"}
       - Format: ${formData.format}
       - Purpose: ${formData.purpose || "Fun and learning"}
 
@@ -43,6 +43,7 @@ export const generateActivityIdeas = async (formData) => {
       - materialsList: (array of strings, specific items needed)
       - safetySteps: (array of strings, key safety considerations)
       - restrictions: (array of strings, weather/mobility considerations)
+      - inspiration: (string, topics, games, websites, or categories where this activity was inspired from)
     `;
 
         const completion = await groq.chat.completions.create({

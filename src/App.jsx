@@ -8,10 +8,42 @@ import Profile from './pages/Profile';
 function App() {
   const [activeTab, setActiveTab] = useState('generator');
 
+  // Generator State
+  const [generatorState, setGeneratorState] = useState({
+    formData: {
+      numKids: '10',
+      minAge: '8',
+      maxAge: '12',
+      budgetType: 'money',
+      budgetAmount: 50,
+      materials: '',
+      theme: '',
+      accessible: false,
+      disability: '',
+      region: '',
+      location: 'Outdoor',
+      format: 'Small groups',
+      purpose: ''
+    },
+    generatedIdeas: null,
+    selectedIdea: null,
+    isGenerating: false,
+    error: null
+  });
+
+  const updateGeneratorState = (updates) => {
+    setGeneratorState(prev => ({ ...prev, ...updates }));
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'generator':
-        return <Generator />;
+        return (
+          <Generator
+            state={generatorState}
+            updateState={updateGeneratorState}
+          />
+        );
       case 'events':
         return <EventCollaboration />;
       case 'community':
