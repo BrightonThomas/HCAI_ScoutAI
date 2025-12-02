@@ -37,8 +37,6 @@ const Generator = ({ state, updateState }) => {
                 budgetAmount: 50,
                 materials: '',
                 theme: '',
-                materials: '',
-                theme: '',
                 accessible: false,
                 disability: '',
                 region: '',
@@ -121,7 +119,14 @@ const Generator = ({ state, updateState }) => {
                         <p className="text-sm text-stone-400">Scan to RSVP or contact your troop leader</p>
                     </div>
 
-                    <Button onClick={onClose} className="w-full">Close Flyer</Button>
+                    <div className="flex gap-3">
+                        <Button onClick={() => alert("Downloading PDF... (Prototype)")} className="flex-1 bg-stone-800 hover:bg-stone-900">
+                            Download PDF
+                        </Button>
+                        <Button onClick={onClose} variant="outline" className="flex-1 border-stone-300 text-stone-600 hover:bg-stone-100">
+                            Close
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -198,7 +203,7 @@ const Generator = ({ state, updateState }) => {
                         {/* Safety */}
                         <div>
                             <h3 className="flex items-center gap-2 font-bold text-stone-800 mb-3">
-                                <ShieldAlert size={18} className="text-emerald-600" /> Safety Considerations
+                                <ShieldAlert size={18} className="text-emerald-600" /> Safety Precautions
                             </h3>
                             <ul className="space-y-2">
                                 {selectedIdea.safetySteps?.map((step, i) => (
