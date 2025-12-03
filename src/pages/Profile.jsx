@@ -2,31 +2,93 @@ import React from 'react';
 import { User, MapPin, Mail, Phone, Award, Save, Bookmark, Trash2 } from 'lucide-react';
 import Button from '../components/Button';
 
+
 const Profile = () => {
     const [savedActivities, setSavedActivities] = React.useState([]);
+    const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+    const [confirmAction, setConfirmAction] = React.useState(null);
+    const [confirmMessage, setConfirmMessage] = React.useState('');
 
     React.useEffect(() => {
         const saved = JSON.parse(localStorage.getItem('savedActivities') || '[]');
         setSavedActivities(saved);
     }, []);
 
-    const clearSaved = () => {
-        if (window.confirm('Are you sure you want to clear all saved activities?')) {
-            localStorage.removeItem('savedActivities');
-            setSavedActivities([]);
+    const showConfirmation = (message, action) => {
+        setConfirmMessage(message);
+        setConfirmAction(() => action);
+        setShowConfirmModal(true);
+    };
+
+    const handleConfirm = () => {
+        if (confirmAction) {
+            confirmAction();
         }
+        setShowConfirmModal(false);
+        setConfirmAction(null);
+    };
+
+    const handleCancel = () => {
+        setShowConfirmModal(false);
+        setConfirmAction(null);
+    };
+
+    const clearSaved = () => {
+        showConfirmation(
+            'Are you sure you want to clear all saved activities?',
+            () => {
+                localStorage.removeItem('savedActivities');
+                setSavedActivities([]);
+            }
+        );
     };
 
     const deleteActivity = (index) => {
-        if (window.confirm('Are you sure you want to delete this activity?')) {
-            const updated = savedActivities.filter((_, i) => i !== index);
-            localStorage.setItem('savedActivities', JSON.stringify(updated));
-            setSavedActivities(updated);
-        }
+        showConfirmation(
+            'Are you sure you want to delete this activity?',
+            () => {
+                const updated = savedActivities.filter((_, i) => i !== index);
+                localStorage.setItem('savedActivities', JSON.stringify(updated));
+                setSavedActivities(updated);
+            }
+        );
     };
+
+    // Confirmation Modal Component
+    const ConfirmModal = () => {
+        if (!showConfirmModal) return null;
+
+        return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="p-6">
+                        <h3 className="text-lg font-bold text-stone-800 mb-2">Confirm Action</h3>
+                        <p className="text-stone-600 text-sm">{confirmMessage}</p>
+                    </div>
+                    <div className="p-4 bg-stone-50 border-t border-stone-100 flex gap-3 justify-end">
+                        <Button
+                            variant="outline"
+                            onClick={handleCancel}
+                            className="border-stone-300 text-stone-600 hover:bg-stone-100"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleConfirm}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            Delete
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
 
     return (
         <div className="p-6 pb-24 max-w-4xl mx-auto">
+            <ConfirmModal />
             {/* Header with Save Button */}
             <div className="flex justify-between items-center mb-8">
                 <div>
