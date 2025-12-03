@@ -10,12 +10,19 @@ const Generator = ({ state, updateState }) => {
     // Local state for UI only
     const [showFlyer, setShowFlyer] = useState(false);
     const [savedSuccess, setSavedSuccess] = useState(false);
+    const [rating, setRating] = useState(0);
 
     React.useEffect(() => {
         if (selectedIdea) {
             window.scrollTo(0, 0);
         }
     }, [selectedIdea]);
+
+    React.useEffect(() => {
+        if (generatedIdeas) {
+            window.scrollTo(0, 0);
+        }
+    }, [generatedIdeas]);
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -79,58 +86,310 @@ const Generator = ({ state, updateState }) => {
         }
     };
 
-    const FlyerModal = ({ idea, onClose }) => (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-            <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative">
-                <div className="bg-emerald-600 p-6 text-white text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                    <h2 className="text-2xl font-bold relative z-10">Scout Activity Flyer</h2>
-                    <p className="text-emerald-100 text-sm relative z-10">Join us for an adventure!</p>
-                    <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white">
-                        <X size={24} />
-                    </button>
+    const FlyerModal = ({ idea, onClose }) => {
+        const [isEditing, setIsEditing] = useState(false);
+        const [flyerData, setFlyerData] = useState({
+            title: idea.title,
+            description: idea.description,
+            date: "",
+            time: "",
+            duration: idea.duration || "60 mins",
+            groupSize: idea.groupSize || formData.numKids + " kids",
+            location: idea.location,
+            materials: idea.materialsList || [],
+            safety: idea.safetySteps || [],
+            restrictions: idea.restrictions || [],
+            bring: "Water bottle, comfortable clothes",
+            additionalInfo: "Please ensure your child has eaten breakfast before arriving."
+        });
+
+        const handleArrayChange = (e, field) => {
+            setFlyerData(prev => ({ ...prev, [field]: e.target.value.split('\n').filter(item => item.trim()) }));
+        };
+
+        // Edit Form Component
+        if (isEditing) {
+            return (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+                        <div className="p-6 border-b border-stone-100 flex justify-between items-start">
+                            <div>
+                                <h2 className="text-xl font-bold text-emerald-900">Parent Information Flyer</h2>
+                                <p className="text-sm text-stone-500">Edit your flyer details</p>
+                            </div>
+                            <button onClick={() => setIsEditing(false)} className="text-stone-400 hover:text-stone-600">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-4 overflow-y-auto">
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Activity Title</label>
+                                <input
+                                    type="text"
+                                    value={flyerData.title}
+                                    onChange={(e) => setFlyerData({ ...flyerData, title: e.target.value })}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Description</label>
+                                <textarea
+                                    value={flyerData.description}
+                                    onChange={(e) => setFlyerData({ ...flyerData, description: e.target.value })}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Date</label>
+                                    <input
+                                        type="date"
+                                        value={flyerData.date}
+                                        onChange={(e) => setFlyerData({ ...flyerData, date: e.target.value })}
+                                        className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Time</label>
+                                    <input
+                                        type="time"
+                                        value={flyerData.time}
+                                        onChange={(e) => setFlyerData({ ...flyerData, time: e.target.value })}
+                                        className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={flyerData.duration}
+                                        onChange={(e) => setFlyerData({ ...flyerData, duration: e.target.value })}
+                                        className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-stone-700 mb-1">Group Size</label>
+                                    <input
+                                        type="text"
+                                        value={flyerData.groupSize}
+                                        onChange={(e) => setFlyerData({ ...flyerData, groupSize: e.target.value })}
+                                        className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Location</label>
+                                <input
+                                    type="text"
+                                    value={flyerData.location}
+                                    onChange={(e) => setFlyerData({ ...flyerData, location: e.target.value })}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Materials Provided (one per line)</label>
+                                <textarea
+                                    value={flyerData.materials.join('\n')}
+                                    onChange={(e) => handleArrayChange(e, 'materials')}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Enter items separated by new lines"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Safety Precautions (one per line)</label>
+                                <textarea
+                                    value={flyerData.safety.join('\n')}
+                                    onChange={(e) => handleArrayChange(e, 'safety')}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Enter safety steps separated by new lines"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Restrictions (one per line)</label>
+                                <textarea
+                                    value={flyerData.restrictions.join('\n')}
+                                    onChange={(e) => handleArrayChange(e, 'restrictions')}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Enter restrictions separated by new lines"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">What Kids Should Bring</label>
+                                <textarea
+                                    value={flyerData.bring}
+                                    onChange={(e) => setFlyerData({ ...flyerData, bring: e.target.value })}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="e.g., water bottle, sunscreen..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-stone-700 mb-1">Additional Information</label>
+                                <textarea
+                                    value={flyerData.additionalInfo}
+                                    onChange={(e) => setFlyerData({ ...flyerData, additionalInfo: e.target.value })}
+                                    className="w-full bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 text-sm h-20 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    placeholder="Any other important details..."
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-stone-100 bg-stone-50 flex gap-3 justify-end">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsEditing(false)}
+                                className="border-stone-300 text-stone-600 hover:bg-stone-100"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={() => setIsEditing(false)}
+                                className="bg-emerald-800 hover:bg-emerald-900 text-white"
+                            >
+                                Save Changes
+                            </Button>
+                        </div>
+                    </div>
                 </div>
-                <div className="p-8 text-center space-y-6">
-                    <div>
-                        <h3 className="text-3xl font-black text-stone-800 mb-2">{idea.title}</h3>
-                        <p className="text-stone-500 italic">{idea.description}</p>
+            );
+        }
+
+        // View Mode (Original Layout with all details)
+        return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col">
+                    <div className="bg-emerald-600 p-6 text-white text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                        <h2 className="text-2xl font-bold relative z-10">Scout Activity Flyer</h2>
+                        <p className="text-emerald-100 text-sm relative z-10">Join us for an adventure!</p>
+                        <button onClick={onClose} className="absolute top-4 right-4 text-white/80 hover:text-white">
+                            <X size={24} />
+                        </button>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 text-left bg-stone-50 p-4 rounded-xl">
+                    <div className="p-8 text-center space-y-6 overflow-y-auto">
                         <div>
-                            <p className="text-xs font-bold text-stone-400 uppercase">When</p>
-                            <p className="font-bold text-stone-700">Next Meeting</p>
+                            <h3 className="text-3xl font-black text-stone-800 mb-2">{flyerData.title}</h3>
+                            <p className="text-stone-500 italic">{flyerData.description}</p>
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-stone-400 uppercase">Where</p>
-                            <p className="font-bold text-stone-700">{idea.location}</p>
+
+                        <div className="grid grid-cols-3 gap-4 text-center bg-stone-50 p-4 rounded-xl">
+                            <div>
+                                <Clock size={20} className="mx-auto mb-1 text-emerald-600" />
+                                <p className="text-xs font-bold text-stone-400 uppercase">Duration</p>
+                                <p className="font-bold text-stone-700 text-sm">{flyerData.duration}</p>
+                            </div>
+                            <div>
+                                <Users size={20} className="mx-auto mb-1 text-emerald-600" />
+                                <p className="text-xs font-bold text-stone-400 uppercase">Group</p>
+                                <p className="font-bold text-stone-700 text-sm">{flyerData.groupSize}</p>
+                            </div>
+                            <div>
+                                <MapPin size={20} className="mx-auto mb-1 text-emerald-600" />
+                                <p className="text-xs font-bold text-stone-400 uppercase">Location</p>
+                                <p className="font-bold text-stone-700 text-sm">{flyerData.location}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-stone-400 uppercase">Bring</p>
-                            <p className="font-bold text-stone-700">{idea.item || "Water bottle"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-stone-400 uppercase">Duration</p>
-                            <p className="font-bold text-stone-700">{idea.duration || "60 mins"}</p>
+
+                        {(flyerData.date || flyerData.time) && (
+                            <div className="bg-stone-50 p-4 rounded-xl text-left">
+                                <p className="text-xs font-bold text-stone-400 uppercase mb-1">When</p>
+                                <p className="font-bold text-stone-700">
+                                    {flyerData.date ? new Date(flyerData.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Date TBD'}
+                                    {flyerData.time && <><br /><span className="text-sm font-normal text-stone-500">{flyerData.time}</span></>}
+                                </p>
+                            </div>
+                        )}
+
+                        {flyerData.materials.length > 0 && (
+                            <div className="text-left">
+                                <h4 className="flex items-center gap-2 font-bold text-stone-800 mb-2 text-sm">
+                                    <CheckCircle2 size={16} className="text-emerald-600" /> Materials Provided
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {flyerData.materials.map((item, i) => (
+                                        <span key={i} className="bg-stone-100 text-stone-600 px-3 py-1 rounded-lg text-xs font-medium border border-stone-200">
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {flyerData.safety.length > 0 && (
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-left">
+                                <h4 className="flex items-center gap-2 font-bold text-amber-800 mb-2 text-sm">
+                                    <ShieldAlert size={16} className="text-amber-600" /> Safety Precautions
+                                </h4>
+                                <ul className="space-y-1">
+                                    {flyerData.safety.map((step, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-xs text-stone-600">
+                                            <span className="w-1 h-1 bg-amber-400 rounded-full mt-1.5 shrink-0" />
+                                            {step}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {flyerData.restrictions.length > 0 && (
+                            <div className="text-left">
+                                <h4 className="flex items-center gap-2 font-bold text-stone-800 mb-2 text-sm">
+                                    <AlertTriangle size={16} className="text-stone-600" /> Restrictions
+                                </h4>
+                                <ul className="space-y-1">
+                                    {flyerData.restrictions.map((item, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-xs text-stone-600">
+                                            <span className="w-1 h-1 bg-stone-400 rounded-full mt-1.5 shrink-0" />
+                                            {item}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+
+                        {flyerData.bring && (
+                            <div className="bg-stone-50 p-4 rounded-xl text-left">
+                                <p className="text-xs font-bold text-stone-400 uppercase mb-1">What to Bring</p>
+                                <p className="font-bold text-stone-700 text-sm">{flyerData.bring}</p>
+                            </div>
+                        )}
+
+                        {flyerData.additionalInfo && (
+                            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm text-stone-600 text-left">
+                                <p className="font-bold text-yellow-800 mb-1">Note:</p>
+                                {flyerData.additionalInfo}
+                            </div>
+                        )}
+
+                        <div className="border-t border-stone-100 pt-6">
+                            <p className="text-sm text-stone-400">Questions? Contact your scout leader</p>
                         </div>
                     </div>
 
-                    <div className="border-t border-stone-100 pt-6">
-                        <p className="text-sm text-stone-400">Scan to RSVP or contact your troop leader</p>
-                    </div>
-
-                    <div className="flex gap-3">
+                    <div className="p-6 bg-white border-t border-stone-100 flex gap-3">
+                        <Button onClick={() => setIsEditing(true)} variant="outline" className="flex-1 border-stone-300 text-stone-600 hover:bg-stone-100">
+                            <Sparkles size={16} className="mr-2" /> Edit Flyer
+                        </Button>
                         <Button onClick={() => alert("Downloading PDF... (Prototype)")} className="flex-1 bg-stone-800 hover:bg-stone-900">
                             Download PDF
-                        </Button>
-                        <Button onClick={onClose} variant="outline" className="flex-1 border-stone-300 text-stone-600 hover:bg-stone-100">
-                            Close
                         </Button>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // Expanded View
     if (selectedIdea) {
@@ -148,13 +407,7 @@ const Generator = ({ state, updateState }) => {
 
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-stone-100">
                     <div className="p-6 border-b border-stone-100">
-                        <div className="flex justify-between items-start mb-2">
-                            <h2 className="text-2xl font-bold text-stone-800">{selectedIdea.title}</h2>
-                            <div className="flex items-center gap-1 text-yellow-500 bg-yellow-50 px-2 py-1 rounded-lg">
-                                <span className="font-bold text-sm">4.8</span>
-                                <Sparkles size={14} fill="currentColor" />
-                            </div>
-                        </div>
+                        <h2 className="text-2xl font-bold text-stone-800 mb-2">{selectedIdea.title}</h2>
                         <p className="text-stone-600 leading-relaxed">{selectedIdea.description}</p>
                     </div>
 
@@ -237,9 +490,10 @@ const Generator = ({ state, updateState }) => {
                                 {[1, 2, 3, 4, 5].map((star) => (
                                     <button
                                         key={star}
-                                        className="text-yellow-400 hover:scale-110 transition-transform focus:outline-none"
+                                        onClick={() => setRating(star)}
+                                        className={`${star <= rating ? 'text-yellow-400' : 'text-stone-300'} hover:scale-125 hover:rotate-12 transition-all duration-200 focus:outline-none active:scale-95 cursor-pointer`}
                                     >
-                                        <Sparkles size={24} fill="currentColor" />
+                                        <Sparkles size={24} fill={star <= rating ? "currentColor" : "none"} />
                                     </button>
                                 ))}
                             </div>
@@ -448,7 +702,7 @@ const Generator = ({ state, updateState }) => {
                         name="theme"
                         value={formData.theme}
                         onChange={handleInputChange}
-                        placeholder="e.g., nature, adventure, creativity..."
+                        placeholder="e.g., nature, football, christmas..."
                         className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                 </div>

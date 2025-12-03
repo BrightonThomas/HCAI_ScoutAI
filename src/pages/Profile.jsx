@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, MapPin, Mail, Phone, Award, Save, Bookmark } from 'lucide-react';
+import { User, MapPin, Mail, Phone, Award, Save, Bookmark, Trash2 } from 'lucide-react';
 import Button from '../components/Button';
 
 const Profile = () => {
@@ -14,6 +14,14 @@ const Profile = () => {
         if (window.confirm('Are you sure you want to clear all saved activities?')) {
             localStorage.removeItem('savedActivities');
             setSavedActivities([]);
+        }
+    };
+
+    const deleteActivity = (index) => {
+        if (window.confirm('Are you sure you want to delete this activity?')) {
+            const updated = savedActivities.filter((_, i) => i !== index);
+            localStorage.setItem('savedActivities', JSON.stringify(updated));
+            setSavedActivities(updated);
         }
     };
 
@@ -153,14 +161,23 @@ const Profile = () => {
                 ) : (
                     <div className="space-y-3">
                         {savedActivities.map((activity, index) => (
-                            <div key={index} className="bg-stone-50 p-4 rounded-xl border border-stone-100 flex justify-between items-start">
-                                <div>
+                            <div key={index} className="bg-stone-50 p-4 rounded-xl border border-stone-100 flex justify-between items-start gap-3">
+                                <div className="flex-1">
                                     <h4 className="font-bold text-stone-800 text-sm">{activity.title}</h4>
                                     <p className="text-xs text-stone-500 line-clamp-1">{activity.description}</p>
                                 </div>
-                                <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full whitespace-nowrap ml-2">
-                                    {activity.duration || "60m"}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                        {activity.duration || "60m"}
+                                    </span>
+                                    <button
+                                        onClick={() => deleteActivity(index)}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                                        title="Delete activity"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
