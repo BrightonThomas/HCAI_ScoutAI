@@ -42,6 +42,7 @@ function App() {
           <Generator
             state={generatorState}
             updateState={updateGeneratorState}
+            setActiveTab={setActiveTab}
           />
         );
       case 'events':
@@ -49,7 +50,13 @@ function App() {
       case 'community':
         return <Community />;
       case 'profile':
-        return <Profile />;
+        return (
+          <Profile
+            generatorState={generatorState}
+            updateGeneratorState={updateGeneratorState}
+            setActiveTab={setActiveTab}
+          />
+        );
       default:
         return <Generator />;
     }

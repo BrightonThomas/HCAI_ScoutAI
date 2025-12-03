@@ -4,8 +4,8 @@ import Button from '../components/Button';
 import { generateActivityIdeas } from '../lib/groq';
 import { generatorData } from '../data/generatorData';
 
-const Generator = ({ state, updateState }) => {
-    const { formData, generatedIdeas, selectedIdea, isGenerating, error } = state;
+const Generator = ({ state, updateState, setActiveTab }) => {
+    const { formData, generatedIdeas, selectedIdea, isGenerating, error, source } = state;
 
     // Local state for UI only
     const [showFlyer, setShowFlyer] = useState(false);
@@ -399,10 +399,17 @@ const Generator = ({ state, updateState }) => {
 
                 <Button
                     variant="ghost"
-                    onClick={() => updateState({ selectedIdea: null })}
+                    onClick={() => {
+                        if (source === 'profile' && setActiveTab) {
+                            updateState({ selectedIdea: null, source: null });
+                            setActiveTab('profile');
+                        } else {
+                            updateState({ selectedIdea: null });
+                        }
+                    }}
                     className="mb-4 text-stone-500 hover:text-stone-800 pl-0"
                 >
-                    <ArrowLeft size={20} className="mr-2" /> Back to Ideas
+                    <ArrowLeft size={20} className="mr-2" /> {source === 'profile' ? 'Back to Profile' : 'Back to Ideas'}
                 </Button>
 
                 <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-stone-100">

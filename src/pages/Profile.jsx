@@ -3,7 +3,8 @@ import { User, MapPin, Mail, Phone, Award, Save, Bookmark, Trash2 } from 'lucide
 import Button from '../components/Button';
 
 
-const Profile = () => {
+
+const Profile = ({ generatorState, updateGeneratorState, setActiveTab }) => {
     const [savedActivities, setSavedActivities] = React.useState([]);
     const [showConfirmModal, setShowConfirmModal] = React.useState(false);
     const [confirmAction, setConfirmAction] = React.useState(null);
@@ -52,6 +53,16 @@ const Profile = () => {
                 setSavedActivities(updated);
             }
         );
+    };
+
+    const viewActivity = (activity) => {
+        if (updateGeneratorState && setActiveTab) {
+            updateGeneratorState({
+                selectedIdea: activity,
+                source: 'profile'
+            });
+            setActiveTab('generator');
+        }
     };
 
     // Confirmation Modal Component
@@ -223,9 +234,9 @@ const Profile = () => {
                 ) : (
                     <div className="space-y-3">
                         {savedActivities.map((activity, index) => (
-                            <div key={index} className="bg-stone-50 p-4 rounded-xl border border-stone-100 flex justify-between items-start gap-3">
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-stone-800 text-sm">{activity.title}</h4>
+                            <div key={index} className="bg-stone-50 p-4 rounded-xl border border-stone-100 flex justify-between items-start gap-3 hover:bg-stone-100 hover:border-stone-200 transition-all cursor-pointer group">
+                                <div className="flex-1" onClick={() => viewActivity(activity)}>
+                                    <h4 className="font-bold text-stone-800 text-sm group-hover:text-emerald-800 transition-colors">{activity.title}</h4>
                                     <p className="text-xs text-stone-500 line-clamp-1">{activity.description}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -233,7 +244,10 @@ const Profile = () => {
                                         {activity.duration || "60m"}
                                     </span>
                                     <button
-                                        onClick={() => deleteActivity(index)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            deleteActivity(index);
+                                        }}
                                         className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
                                         title="Delete activity"
                                     >
